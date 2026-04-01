@@ -1,0 +1,23 @@
+{
+  "": {
+    "swift-dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/master.swiftdeps"
+  },
+  "/Users/macmini/projects/ClawWatch/Sources/ClawWatch/MonitorView.swift": {
+    "dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/MonitorView.d",
+    "object": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/MonitorView.swift.o",
+    "swiftmodule": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/MonitorView~partial.swiftmodule",
+    "swift-dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/MonitorView.swiftdeps"
+  },
+  "/Users/macmini/projects/ClawWatch/Sources/ClawWatch/SSHMonitor.swift": {
+    "dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/SSHMonitor.d",
+    "object": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/SSHMonitor.swift.o",
+    "swiftmodule": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/SSHMonitor~partial.swiftmodule",
+    "swift-dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/SSHMonitor.swiftdeps"
+  },
+  "/Users/macmini/projects/ClawWatch/Sources/ClawWatch/main.swift": {
+    "dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/main.d",
+    "object": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/main.swift.o",
+    "swiftmodule": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/macmini/projects/ClawWatch/.build/x86_64-apple-macosx/debug/ClawWatch.build/main.swiftdeps"
+  }
+}
