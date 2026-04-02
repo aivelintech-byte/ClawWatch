@@ -4,10 +4,12 @@ import SwiftUI
 struct MonitorView: View {
     @ObservedObject var monitor: SSHMonitor
     @State private var clawToggle = false
+    @State private var bubbleMessageIndex = 0
+    @State private var bubbleVisible = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
+            crabHeader
             Divider()
             statsStrip
             Divider()
@@ -18,35 +20,132 @@ struct MonitorView: View {
         .frame(width: 420)
         .background(Color(NSColor.windowBackgroundColor))
         .onAppear {
-            startClawTimer()
+            clawToggle = true
+            startBubbleRotation()
+        }
+        .onChange(of: monitor.crabState) { _ in
+            bubbleMessageIndex = 0
+            startBubbleRotation()
         }
     }
 
-    // MARK: - Header
+    // MARK: - Crab Header with Speech Bubble
 
-    private var header: some View {
-        HStack(spacing: 12) {
+    private var crabHeader: some View {
+        HStack(alignment: .top, spacing: 10) {
+            // Crab
             crabView
-            VStack(alignment: .leading, spacing: 2) {
-                Text(headerTitle)
-                    .font(.system(size: 13, weight: .semibold))
+                .padding(.top, 8)
+
+            // Speech bubble
+            VStack(alignment: .leading, spacing: 0) {
+                speechBubble
+                    .padding(.top, 6)
                 Text("Checking every 5s · mac mini")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
+                    .padding(.top, 4)
             }
+
             Spacer()
             statusDot
+                .padding(.top, 14)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
     }
 
-    private var headerTitle: String {
+    // MARK: - Speech Bubble
+
+    private var speechBubble: some View {
+        HStack(alignment: .center, spacing: 0) {
+            // Tail
+            BubbleTail()
+                .fill(bubbleBgColor)
+                .frame(width: 10, height: 10)
+                .offset(x: 1)
+
+            Text(currentBubbleMessage)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(bubbleTextColor)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(bubbleBgColor)
+                )
+        }
+        .opacity(bubbleVisible ? 1 : 0)
+        .animation(.easeInOut(duration: 0.3), value: bubbleVisible)
+    }
+
+    private var bubbleBgColor: Color {
         switch monitor.crabState {
-        case .active:   return "OpenClaw is running"
-        case .checking: return "Checking…"
-        case .offline:  return "Can't reach server"
-        case .error:    return "OpenClaw stopped"
+        case .active:   return Color.green.opacity(0.18)
+        case .checking: return Color.blue.opacity(0.18)
+        case .offline:  return Color.gray.opacity(0.18)
+        case .error:    return Color.red.opacity(0.18)
+        }
+    }
+
+    private var bubbleTextColor: Color {
+        switch monitor.crabState {
+        case .active:   return .green
+        case .checking: return .blue
+        case .offline:  return .secondary
+        case .error:    return .red
+        }
+    }
+
+    private var currentBubbleMessage: String {
+        let messages = bubbleMessages
+        return messages[bubbleMessageIndex % messages.count]
+    }
+
+    private var bubbleMessages: [String] {
+        switch monitor.crabState {
+        case .active:
+            let last = monitor.status.recentActivity.last(where: { $0.kind == .ok })?.text
+            return [
+                "All claws working! 🦀",
+                "Everything looks healthy.",
+                "Connections are solid.",
+                last.map { "Latest: \($0)" } ?? "Polling away…",
+                "Uptime \(String(format: "%.0f", monitor.status.uptimePercent))% — not bad!",
+            ]
+        case .checking:
+            return [
+                "Hang on, checking…",
+                "SSH-ing in…",
+                "Peeking at the logs…",
+                "One moment…",
+            ]
+        case .offline:
+            return [
+                "Can't reach the server!",
+                "SSH connection failed.",
+                "Is the Mac mini awake?",
+                "Waiting to reconnect…",
+            ]
+        case .error:
+            let errCount = monitor.status.errorsToday
+            return [
+                "OpenClaw has stopped! 😱",
+                errCount > 0 ? "\(errCount) error(s) found today." : "Something went wrong.",
+                "The process isn't running.",
+                "Might need a restart!",
+            ]
+        }
+    }
+
+    private func startBubbleRotation() {
+        Timer.scheduledTimer(withTimeInterval: 4, repeats: true) { timer in
+            guard monitor.crabState == monitor.crabState else { timer.invalidate(); return }
+            withAnimation { bubbleVisible = false }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                bubbleMessageIndex += 1
+                withAnimation { bubbleVisible = true }
+            }
         }
     }
 
@@ -56,36 +155,34 @@ struct MonitorView: View {
         ZStack {
             switch monitor.crabState {
             case .active:
-                activeClawView
+                Text("🦀")
+                    .font(.system(size: 36))
+                    .offset(y: clawToggle ? -3 : 3)
+                    .animation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true), value: clawToggle)
+
             case .checking:
                 Text("🦀")
-                    .font(.system(size: 34))
-                    .rotationEffect(.degrees(clawToggle ? 15 : -15))
-                    .animation(.easeInOut(duration: 0.3).repeatForever(autoreverses: true), value: clawToggle)
+                    .font(.system(size: 36))
+                    .rotationEffect(.degrees(clawToggle ? 20 : -20))
+                    .animation(.easeInOut(duration: 0.25).repeatForever(autoreverses: true), value: clawToggle)
+
             case .offline:
                 Text("🦀")
-                    .font(.system(size: 34))
+                    .font(.system(size: 36))
                     .grayscale(1)
-                    .opacity(0.45)
+                    .opacity(clawToggle ? 0.5 : 0.25)
+                    .animation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true), value: clawToggle)
+
             case .error:
                 Text("🦀")
-                    .font(.system(size: 34))
+                    .font(.system(size: 36))
                     .colorMultiply(.red)
-                    .shadow(color: .red.opacity(0.8), radius: 6)
-                    .scaleEffect(clawToggle ? 1.08 : 1.0)
-                    .animation(.easeInOut(duration: 0.4).repeatForever(autoreverses: true), value: clawToggle)
+                    .shadow(color: .red.opacity(0.9), radius: clawToggle ? 8 : 2)
+                    .scaleEffect(clawToggle ? 1.12 : 0.95)
+                    .animation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true), value: clawToggle)
             }
         }
-        .frame(width: 44, height: 44)
-    }
-
-    private var activeClawView: some View {
-        ZStack {
-            Text("🦀")
-                .font(.system(size: 34))
-                .offset(y: clawToggle ? -2 : 2)
-                .animation(.easeInOut(duration: 0.7).repeatForever(autoreverses: true), value: clawToggle)
-        }
+        .frame(width: 48, height: 48)
     }
 
     // MARK: - Status dot
@@ -95,7 +192,7 @@ struct MonitorView: View {
             .fill(dotColor)
             .frame(width: 10, height: 10)
             .shadow(color: dotColor.opacity(0.8), radius: 4)
-            .opacity(clawToggle ? 1.0 : 0.4)
+            .opacity(clawToggle ? 1.0 : 0.3)
             .animation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true), value: clawToggle)
     }
 
@@ -155,7 +252,7 @@ struct MonitorView: View {
                 }
                 .padding(.vertical, 6)
             }
-            .frame(height: 220)
+            .frame(height: 200)
             .onChange(of: monitor.status.recentActivity.count) { _ in
                 if let last = monitor.status.recentActivity.last {
                     proxy.scrollTo(last.id, anchor: .bottom)
@@ -214,10 +311,17 @@ struct MonitorView: View {
         .padding(.horizontal, 14)
         .padding(.vertical, 8)
     }
+}
 
-    // MARK: - Helpers
+// MARK: - Bubble tail shape
 
-    private func startClawTimer() {
-        clawToggle = true
+struct BubbleTail: Shape {
+    func path(in rect: CGRect) -> Path {
+        var p = Path()
+        p.move(to: CGPoint(x: rect.maxX, y: rect.midY - 5))
+        p.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
+        p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY + 5))
+        p.closeSubpath()
+        return p
     }
 }
