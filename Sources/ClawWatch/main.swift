@@ -16,7 +16,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         let popover = NSPopover()
-        popover.contentSize = NSSize(width: 420, height: 360)
+        popover.contentSize = NSSize(width: 480, height: 420)
         popover.behavior = .transient
         popover.contentViewController = NSHostingController(rootView: MonitorView(monitor: monitor))
         self.popover = popover
@@ -40,7 +40,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func updateIcon() {
         let symbolName = monitor.crabState.symbolName
-        statusItem?.button?.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ClawWatch")
+        let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ClawWatch")
+        image?.isTemplate = true
+        statusItem?.button?.image = image
+
+        switch monitor.crabState {
+        case .active:   statusItem?.button?.contentTintColor = nil
+        case .checking: statusItem?.button?.contentTintColor = .systemBlue
+        case .offline:  statusItem?.button?.contentTintColor = .systemGray
+        case .error:    statusItem?.button?.contentTintColor = .systemRed
+        }
     }
 }
 
