@@ -39,8 +39,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     private func updateIcon() {
-        let name = monitor.status.isRunning ? "pawprint.fill" : "pawprint"
-        statusItem?.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: "OpenClaw")
+        let symbolName = monitor.crabState.symbolName
+        statusItem?.button?.image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "ClawWatch")
     }
 }
 
